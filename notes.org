@@ -1,0 +1,517 @@
+* Notes
+These are the commands I used to set this lab up:
+#+begin_src bash
+bundle install
+rails db:migrate db:seed
+rails s
+#+end_src
+
+I then revised the 'app/controllers/birds_controller.rb' controller file with the following private method to make some of the code more 'DRY' to prevent duplicate actions of finding a bird by its 'id' value, and doing if statement based rendering:
+#+begin_src ruby
+class BirdsController < ApplicationController
+
+  # GET /birds
+  def index
+    birds = Bird.all
+    render json: birds
+  end
+
+  # POST /birds
+  def create
+    bird = Bird.create(bird_params)
+    render json: bird, status: :created
+  end
+
+  # GET /birds/:id
+  def show
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # PATCH /birds/:id
+  def update
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(bird_params)
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # PATCH /birds/:id/like
+  def increment_likes
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(likes: bird.likes + 1)
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # DELETE /birds/:id
+  def destroy
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.destroy
+      head :no_content
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  private
+
+  def bird_params
+    params.permit(:name, :species, :likes)
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+end
+#+end_src
+
+I then revised the 'show' and 'update' methods within the 'app/controllers/birds_controller.rb' controller file to include this private method:
+#+begin_src ruby
+class BirdsController < ApplicationController
+
+  # GET /birds
+  def index
+    birds = Bird.all
+    render json: birds
+  end
+
+  # POST /birds
+  def create
+    bird = Bird.create(bird_params)
+    render json: bird, status: :created
+  end
+
+  # GET /birds/:id
+  def show
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      render json: bird
+    else
+      render_not_found_response
+    end
+  end
+
+  # PATCH /birds/:id
+  def update
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(bird_params)
+      render json: bird
+    else
+      render_not_found_response
+    end
+  end
+
+  # PATCH /birds/:id/like
+  def increment_likes
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(likes: bird.likes + 1)
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # DELETE /birds/:id
+  def destroy
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.destroy
+      head :no_content
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  private
+
+  def bird_params
+    params.permit(:name, :species, :likes)
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+end
+#+end_src
+
+I then created a related 'find_bird' private method within the 'app/controllers/birds_controller.rb' controller file as well:
+#+begin_src ruby
+class BirdsController < ApplicationController
+
+  # GET /birds
+  def index
+    birds = Bird.all
+    render json: birds
+  end
+
+  # POST /birds
+  def create
+    bird = Bird.create(bird_params)
+    render json: bird, status: :created
+  end
+
+  # GET /birds/:id
+  def show
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      render json: bird
+    else
+      render_not_found_response
+    end
+  end
+
+  # PATCH /birds/:id
+  def update
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(bird_params)
+      render json: bird
+    else
+      render_not_found_response
+    end
+  end
+
+  # PATCH /birds/:id/like
+  def increment_likes
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(likes: bird.likes + 1)
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # DELETE /birds/:id
+  def destroy
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.destroy
+      head :no_content
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  private
+
+  def bird_params
+    params.permit(:name, :species, :likes)
+  end
+
+  def find_bird
+    Bird.find_by(id: params[:id])
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+end
+#+end_src
+
+I then revised the 'show' and 'update' methods to include a mention to the private 'find_bird' method within the 'app/controllers/birds_controller.rb' controller file:
+#+begin_src ruby
+class BirdsController < ApplicationController
+
+  # GET /birds
+  def index
+    birds = Bird.all
+    render json: birds
+  end
+
+  # POST /birds
+  def create
+    bird = Bird.create(bird_params)
+    render json: bird, status: :created
+  end
+
+  # GET /birds/:id
+  def show
+    bird = find_bird
+    if bird
+      render json: bird
+    else
+      render_not_found_response
+    end
+  end
+
+  # PATCH /birds/:id
+  def update
+    bird = find_bird
+    if bird
+      bird.update(bird_params)
+      render json: bird
+    else
+      render_not_found_response
+    end
+  end
+
+  # PATCH /birds/:id/like
+  def increment_likes
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(likes: bird.likes + 1)
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # DELETE /birds/:id
+  def destroy
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.destroy
+      head :no_content
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  private
+
+  def bird_params
+    params.permit(:name, :species, :likes)
+  end
+
+  def find_bird
+    Bird.find_by(id: params[:id])
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+end
+#+end_src
+
+I then updated the 'show' and 'update' methods within the 'app/controllers/bird_controllers.rb' controller file with the following contents to include the usage of 'rescue ActiveRecord::RecordNotFound' to prevent having to use a related if statement block accordingly:
+#+begin_src ruby
+class BirdsController < ApplicationController
+
+  # GET /birds
+  def index
+    birds = Bird.all
+    render json: birds
+  end
+
+  # POST /birds
+  def create
+    bird = Bird.create(bird_params)
+    render json: bird, status: :created
+  end
+
+  # GET /birds/:id
+  def show
+    bird = find_bird
+    render json: bird
+  rescue ActiveRecord::RecordNotFound
+    render_not_found_response
+  end
+
+  # PATCH /birds/:id
+  def update
+    bird = find_bird
+    bird.update(bird_params)
+    render json: bird
+  rescue ActiveRecord::RecordNotFound
+    render_not_found_response
+  end
+
+  # PATCH /birds/:id/like
+  def increment_likes
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(likes: bird.likes + 1)
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # DELETE /birds/:id
+  def destroy
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.destroy
+      head :no_content
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  private
+
+  def bird_params
+    params.permit(:name, :species, :likes)
+  end
+
+  def find_bird
+    Bird.find_by(id: params[:id])
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+end
+#+end_src
+
+I then made a further revision at the top of the 'app/controllers/birds_controller.rb' controller file to include the 'rescue_from ActiveRecord::RecordNotFound, with: :render_not_found_response' section at the top of the file:
+#+begin_src ruby
+class BirdsController < ApplicationController
+  rescue_from ActiveRecord::RecordNotFound, with: :render_not_found_response
+
+  # GET /birds
+  def index
+    birds = Bird.all
+    render json: birds
+  end
+
+  # POST /birds
+  def create
+    bird = Bird.create(bird_params)
+    render json: bird, status: :created
+  end
+
+  # GET /birds/:id
+  def show
+    bird = find_bird
+    render json: bird
+  rescue ActiveRecord::RecordNotFound
+    render_not_found_response
+  end
+
+  # PATCH /birds/:id
+  def update
+    bird = find_bird
+    bird.update(bird_params)
+    render json: bird
+  rescue ActiveRecord::RecordNotFound
+    render_not_found_response
+  end
+
+  # PATCH /birds/:id/like
+  def increment_likes
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.update(likes: bird.likes + 1)
+      render json: bird
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  # DELETE /birds/:id
+  def destroy
+    bird = Bird.find_by(id: params[:id])
+    if bird
+      bird.destroy
+      head :no_content
+    else
+      render json: { error: "Bird not found" }, status: :not_found
+    end
+  end
+
+  private
+
+  def bird_params
+    params.permit(:name, :species, :likes)
+  end
+
+  def find_bird
+    Bird.find_by(id: params[:id])
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+end
+#+end_src
+
+I then fully refactored the rest of the controller to not have to include any if else statements for rendering since the 'rescue_from ActiveRecord::RecordNotFound, with: :render_not_found_response' section would take care of any issues with rendering:
+#+begin_src ruby
+class BirdsController < ApplicationController
+  rescue_from ActiveRecord::RecordNotFound, with: :render_not_found_response
+
+  # GET /birds
+  def index
+    birds = Bird.all
+    render json: birds
+  end
+
+  # POST /birds
+  def create
+    bird = Bird.create(bird_params)
+    render json: bird, status: :created
+  end
+
+  # GET /birds/:id
+  def show
+    bird = find_bird
+    render json: bird
+  end
+
+  # PATCH /birds/:id
+  def update
+    bird = find_bird
+    bird.update(bird_params)
+    render json: bird
+  end
+
+  # PATCH /birds/:id/like
+  def increment_likes
+    bird = Bird.find_by(id: params[:id])
+    bird.update(likes: bird.likes + 1)
+    render json: bird
+  end
+
+  # DELETE /birds/:id
+  def destroy
+    bird = Bird.find_by(id: params[:id])
+    bird.destroy()
+    head :no_content
+  end
+
+  private
+
+  def bird_params
+    params.permit(:name, :species, :likes)
+  end
+
+  def find_bird
+    Bird.find_by(id: params[:id])
+  end
+
+  def render_not_found_response
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+end
+#+end_src
+
+Answer To 'Check Your Understanding' Sections:
+- Q1. What is the difference in behavior between the find and find_by methods? Why is that difference important for how we handle not-found errors?
+- Answer: 'find_by' method returns a null value if a record is not found in the database, which is great for 'if else' blocks for rendering
+- Answer: 'find' method will return an 'ActiveRecord::RecordNotFound' except INSTEAD of the 'nil' value produced from the 'find_by' method, which allows us to be able to use it in many spots throughout our code
+- Q2.  Looking at the final version of the controller code, what sequence of events would happen if we tried to submit a PATCH request for a bird that doesn't exist?
+- Answer: The 'rescue_from ActiveRecord::RecordNotFound, with: :render_not_found_response
+' exception would be thrown to the user
